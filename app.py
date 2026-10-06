@@ -2,8 +2,8 @@
 """
 Frame specification PDF -> ONE Hundegger SC .bvx job.
 
-    python make_bvx.py 1R-1_2.pdf                  # stops if the drawing has conflicts
-    python make_bvx.py 1R-1_2.pdf --skip-conflicts # writes <name>_PARTIAL.bvx without conflicting numbers
+    python app.py 1R-1_2.pdf                  # stops if the drawing has conflicts
+    python app.py 1R-1_2.pdf --skip-conflicts # writes <name>_PARTIAL.bvx without conflicting numbers
 
 CNC Part Number from the drawing is used unchanged as PartId. Numbers are never
 renumbered: if one number has different sizes/lengths it is reported as a
@@ -11,13 +11,18 @@ conflict, so the drawing can be fixed and the script run again.
 Straight 90 deg saw cuts only (angles/laps are not in this table).
 Needs `pdftotext` (poppler) on PATH.
 """
+import os
 import re
 import subprocess
 import sys
+import tempfile
 import uuid
 from collections import OrderedDict, defaultdict
 from pathlib import Path
 from xml.sax.saxutils import quoteattr
+
+from flask import Flask, jsonify, render_template, request, send_from_directory
+from werkzeug.utils import secure_filename
 
 OPERATOR = "Operator"          # put the operator name here if needed
 MACHINE_NUMBER = "9665"
@@ -26,6 +31,10 @@ PROG_VERSION = "2.28.35.56151"
 ROW = re.compile(
     r"^\s*(?P<mark>\S+)\s+(?P<job>R-\d+_\d+)\s+(?P<num>\d+)\s+"
     r"(?P<desc>.+?)\s+(?P<count>\d+)\s+(?P<b>\d+)\s*x\s*(?P<d>\d+)\s+(?P<length>\d+)\s*$")
+
+app = Flask(__name__)
+UPLOAD_FOLDER = tempfile.gettempdir()
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 
 def read_rows(pdf):
@@ -119,6 +128,77 @@ def report(rows, parts, conflicts, mark_warn):
     return "\n".join(L)
 
 
+@app.route("/")
+def index():
+    return render_template("index.html")
+
+
+@app.route("/process", methods=["POST"])
+def process():
+    if "file" not in request.files:
+        return jsonify({"success": False, "error": "No file uploaded.", "report": ""}), 400
+
+    file = request.files["file"]
+    if not file or file.filename == "":
+        return jsonify({"success": False, "error": "No file selected.", "report": ""}), 400
+
+    skip_conflicts = request.form.get("skip_conflicts", "false").lower() in ("true", "1", "on")
+
+    original_filename = secure_filename(file.filename) or "document.pdf"
+    stem = Path(original_filename).stem or "document"
+
+    temp_pdf = Path(UPLOAD_FOLDER) / f"upload_{uuid.uuid4().hex}_{original_filename}"
+    file.save(temp_pdf)
+
+    try:
+        rows = read_rows(temp_pdf)
+        parts, conflicts, mark_warn = analyse(rows)
+        rep = report(rows, parts, conflicts, mark_warn)
+
+        if conflicts and not skip_conflicts:
+            rep_str = rep + "\nNot written: fix the conflicts in the drawing (or use --skip-conflicts)."
+            return jsonify({
+                "success": False,
+                "report": rep_str,
+                "error": "Not written: fix the conflicts in the drawing (or check '--skip-conflicts').",
+                "download_url": None
+            })
+
+        out_filename = f"{stem}{'_PARTIAL' if conflicts else ''}.bvx"
+        out_path = Path(UPLOAD_FOLDER) / out_filename
+        out_path.write_text(build_xml(stem, parts), encoding="utf-8")
+
+        summary = f"Written {out_filename}: {len(parts)} positions, {sum(p['count'] for p in parts.values())} pieces"
+        full_report = rep + "\n" + summary
+
+        return jsonify({
+            "success": True,
+            "report": full_report,
+            "error": None,
+            "filename": out_filename,
+            "download_url": f"/download/{out_filename}"
+        })
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": f"Error processing PDF: {str(e)}",
+            "report": f"Error processing PDF: {str(e)}",
+            "download_url": None
+        }), 500
+    finally:
+        if temp_pdf.exists():
+            try:
+                temp_pdf.unlink()
+            except OSError:
+                pass
+
+
+@app.route("/download/<filename>")
+def download_file(filename):
+    safe_filename = secure_filename(filename)
+    return send_from_directory(app.config['UPLOAD_FOLDER'], safe_filename, as_attachment=True)
+
+
 def main():
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     if not args:
@@ -138,4 +218,7 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) > 1 and sys.argv[1].lower().endswith(".pdf"):
+        main()
+    else:
+        app.run(host="0.0.0.0", port=5000, debug=True)
