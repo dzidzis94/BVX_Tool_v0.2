@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+*_report.txt
+*.bvx
+*.pdf
+v/
+venv/
