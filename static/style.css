@@ -1,0 +1,309 @@
+:root {
+    --bg-color: #f8fafc;
+    --card-bg: #ffffff;
+    --text-color: #1e293b;
+    --text-muted: #64748b;
+    --border-color: #e2e8f0;
+    --primary-color: #2563eb;
+    --primary-hover: #1d4ed8;
+    --success-color: #16a34a;
+    --success-hover: #15803d;
+    --error-color: #dc2626;
+    --warning-color: #d97706;
+    --console-bg: #0f172a;
+    --console-text: #e2e8f0;
+    --radius: 8px;
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    line-height: 1.5;
+    padding: 2rem 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+}
+
+.container {
+    width: 100%;
+    max-width: 640px;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.header h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    color: var(--text-color);
+}
+
+.header p {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+}
+
+.card {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+/* Drop Zone */
+.drop-zone {
+    border: 2px dashed var(--border-color);
+    border-radius: var(--radius);
+    padding: 2rem 1rem;
+    text-align: center;
+    background: #fafafa;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.drop-zone:hover, .drop-zone.dragover {
+    border-color: var(--primary-color);
+    background: #eff6ff;
+}
+
+.drop-zone-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.upload-icon {
+    color: var(--text-muted);
+    transition: color 0.2s ease;
+}
+
+.drop-zone:hover .upload-icon, .drop-zone.dragover .upload-icon {
+    color: var(--primary-color);
+}
+
+.drop-text {
+    font-size: 0.95rem;
+    color: var(--text-color);
+}
+
+.file-label {
+    color: var(--primary-color);
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.file-name-display {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-weight: 500;
+    word-break: break-all;
+}
+
+.file-name-display.has-file {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.file-input {
+    display: none;
+}
+
+/* Controls */
+.controls-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    user-select: none;
+}
+
+.checkbox-label input {
+    display: none;
+}
+
+.checkbox-custom {
+    width: 18px;
+    height: 18px;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    background: #ffffff;
+    display: inline-block;
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.checkbox-label input:checked + .checkbox-custom {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.checkbox-label input:checked + .checkbox-custom::after {
+    content: '';
+    position: absolute;
+    left: 5px;
+    top: 2px;
+    width: 5px;
+    height: 9px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.checkbox-text code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.85rem;
+    background: #f1f5f9;
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    color: #334155;
+}
+
+/* Buttons */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.25rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border-radius: var(--radius);
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+    background-color: var(--primary-hover);
+}
+
+.btn-primary:disabled {
+    background-color: #94a3b8;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.btn-success {
+    background-color: var(--success-color);
+    color: white;
+}
+
+.btn-success:hover {
+    background-color: var(--success-hover);
+}
+
+.btn-large {
+    width: 100%;
+    padding: 0.85rem 1.5rem;
+    font-size: 1rem;
+}
+
+.btn-disabled {
+    pointer-events: none;
+    opacity: 0.5;
+}
+
+/* Console Section */
+.console-section {
+    display: flex;
+    flex-direction: column;
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 1px solid #1e293b;
+}
+
+.console-header {
+    background: #1e293b;
+    padding: 0.5rem 0.75rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.console-title {
+    color: #94a3b8;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.badge {
+    font-size: 0.7rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 9999px;
+    font-weight: 600;
+    background: #334155;
+    color: #cbd5e1;
+}
+
+.badge.status-ready {
+    background: #334155;
+    color: #cbd5e1;
+}
+
+.badge.status-processing {
+    background: #1e40af;
+    color: #93c5fd;
+}
+
+.badge.status-success {
+    background: #14532d;
+    color: #86efac;
+}
+
+.badge.status-error {
+    background: #7f1d1d;
+    color: #fca5a5;
+}
+
+.console-output {
+    background: var(--console-bg);
+    color: var(--console-text);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.825rem;
+    padding: 1rem;
+    min-height: 160px;
+    max-height: 280px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.download-section {
+    margin-top: 0.25rem;
+}
